@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -91,19 +92,19 @@ def _get_sensor(request: Request):
 
 
 @router.post("/motor/{action}", summary="Execute a motor command")
-def motor_action(
+async def motor_action(
     action: str,
     body: MotorCommand,
     motor=Depends(_get_motor),
 ) -> dict[str, object]:
     if action in _DURATION_ACTIONS:
-        getattr(motor, action)(body.duration)
+        await asyncio.to_thread(getattr(motor, action), body.duration)
         return {"status": "ok", "action": action, "duration": body.duration}
 
     if action == "rotate":
         if body.angle is None:
             raise HTTPException(status_code=422, detail="'angle' is required for rotate")
-        motor.rotate(body.angle, body.angle_range)
+        await asyncio.to_thread(motor.rotate, body.angle, body.angle_range)
         return {"status": "ok", "action": action, "angle": body.angle}
 
     raise HTTPException(status_code=422, detail=f"Unknown action '{action}'. Valid: {_ALL_ACTIONS}")

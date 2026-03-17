@@ -23,7 +23,7 @@ import time
 import urllib.request
 
 from mechatronics3.config import get_settings
-from mechatronics3.core import MotorController, RobotBoard, ServoController
+from mechatronics3.core import MotorController, RobotBoard
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,6 @@ def _distance(x1: int, y1: int, x2: int, y2: int) -> float:
 
 def run() -> None:
     """Main vision-tracking loop: measure → drive → re-measure → decide."""
-    logging.basicConfig(level=logging.INFO)
     settings = get_settings()
     pins = settings.pins
 
@@ -72,11 +71,7 @@ def run() -> None:
             lb_pin=pins.motor_left_bwd,
             rf_pin=pins.motor_right_fwd,
             rb_pin=pins.motor_right_bwd,
-        )
-        ServoController(
-            board,
-            h_pin=pins.servo_horizontal,
-            v_pin=pins.servo_vertical,
+            motor_config=settings.motor,
         )
 
         try:

@@ -84,6 +84,34 @@ class TestEnvOverride:
         assert s.pins.echo == 12
 
 
+class TestPhase1ConfigFields:
+    def test_default_torque_lead_in(self) -> None:
+        s = Settings()
+        assert s.motor.torque_lead_in == 0.1
+
+    def test_default_rotation_coefficient(self) -> None:
+        s = Settings()
+        assert s.motor.rotation_coefficient == 0.01
+
+    def test_log_level_override(self, monkeypatch) -> None:
+        monkeypatch.setenv("MECH_LOG_LEVEL", "DEBUG")
+        s = Settings()
+        assert s.log_level == "DEBUG"
+
+    def test_log_format_default(self) -> None:
+        s = Settings()
+        assert s.log_format == "text"
+
+    def test_cors_origins_default(self) -> None:
+        s = Settings()
+        assert s.cors_origins == ["*"]
+
+    def test_cors_origins_override(self, monkeypatch) -> None:
+        monkeypatch.setenv("MECH_CORS_ORIGINS", '["http://localhost:3000"]')
+        s = Settings()
+        assert s.cors_origins == ["http://localhost:3000"]
+
+
 class TestGetSettings:
     def test_singleton_caching(self) -> None:
         get_settings.cache_clear()

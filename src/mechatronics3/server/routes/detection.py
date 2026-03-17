@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from mechatronics3.config import HSVRange, Settings, get_settings
@@ -96,6 +98,40 @@ def detect_color(
     if match is None:
         return ColorResponse(detected=False)
     return ColorResponse(detected=True, x=match.x, y=match.y)
+
+
+# ---------------------------------------------------------------------------
+# MJPEG camera stream
+# ---------------------------------------------------------------------------
+
+
+async def _mjpeg_frames(detector):  # type: ignore[no-untyped-def]
+    """Yield MJPEG-compatible frame chunks from the color detector's camera."""
+    try:
+        import cv2
+    except ImportError as exc:
+        raise HTTPException(status_code=501, detail="opencv-python not installed") from exc
+
+    while True:
+        frame = await asyncio.to_thread(detector.capture_frame)
+        if frame is None:
+            await asyncio.sleep(0.05)
+            continue
+        ok, buf = cv2.imencode(".jpg", frame)
+        if not ok:
+            continue
+        yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buf.tobytes() + b"\r\n"
+        await asyncio.sleep(0.033)
+
+
+@router.get("/stream", summary="MJPEG camera stream")
+async def mjpeg_stream(
+    detector=Depends(_get_color_detector),
+) -> StreamingResponse:
+    return StreamingResponse(
+        _mjpeg_frames(detector),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 # ---------------------------------------------------------------------------

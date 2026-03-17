@@ -37,7 +37,7 @@ mechatronics3 = "mechatronics3.__main__:main"
 packages = ["src/mechatronics3"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 131
 src = ["src", "tests"]
 

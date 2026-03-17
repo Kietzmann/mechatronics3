@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pyfirmata import Pin
 
+    from mechatronics3.config import MotorConfig
     from mechatronics3.core.board import RobotBoard
 
 
@@ -27,6 +28,9 @@ class MotorController:
         Pin numbers for left-motor forward / backward.
     rf_pin, rb_pin:
         Pin numbers for right-motor forward / backward.
+    motor_config:
+        Optional :class:`~mechatronics3.config.MotorConfig` for tuning
+        parameters.  Uses defaults when *None*.
     """
 
     def __init__(
@@ -37,11 +41,15 @@ class MotorController:
         lb_pin: int = 8,
         rf_pin: int = 11,
         rb_pin: int = 10,
+        motor_config: MotorConfig | None = None,
     ) -> None:
+        from mechatronics3.config import MotorConfig as _MotorConfig
+
         self._lf: Pin = board.digital_output(lf_pin)
         self._lb: Pin = board.digital_output(lb_pin)
         self._rf: Pin = board.digital_output(rf_pin)
         self._rb: Pin = board.digital_output(rb_pin)
+        self._config = motor_config or _MotorConfig()
 
     # ------------------------------------------------------------------
     # Primitives
@@ -98,13 +106,13 @@ class MotorController:
         A small lead-in on the right motor compensates for uneven torque,
         matching the behaviour of the original ``F()`` helper.
         """
-        self.right_forward(0.1, auto_stop=False)
+        self.right_forward(self._config.torque_lead_in, auto_stop=False)
         self.left_forward(duration)
         self.stop()
 
     def backward(self, duration: float) -> None:
         """Drive both motors backward for *duration* seconds."""
-        self.right_backward(0.1, auto_stop=False)
+        self.right_backward(self._config.torque_lead_in, auto_stop=False)
         self.left_backward(duration)
         self.stop()
 
@@ -112,10 +120,10 @@ class MotorController:
         """Rotate in-place toward *angle* within [0, *angle_range*].
 
         If *angle* falls in the first half of the range the robot turns left;
-        otherwise it turns right.  The empirical coefficient ``k`` converts
-        angle to duration (seconds) and should be tuned for each chassis.
+        otherwise it turns right.  The rotation coefficient converts angle to
+        duration (seconds) and should be tuned for each chassis.
         """
-        k = 0.01
+        k = self._config.rotation_coefficient
         midpoint = angle_range / 2.0
         if 0 <= angle <= midpoint:
             self.left_forward(angle * k)

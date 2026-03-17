@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import logging
+import sys
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -49,6 +53,18 @@ class ScanConfig(BaseModel):
     vertical_angles: tuple[int, ...] = (110, 60)
     distance_threshold: float = 40.0
     ping_samples: int = 3
+    broadcast_interval_ms: int = 0
+    """Interval (ms) for automatic sensor broadcasting via WebSocket.  0 = disabled."""
+
+
+class MotorConfig(BaseModel):
+    """Motor behaviour tuning parameters."""
+
+    torque_lead_in: float = 0.1
+    """Duration (seconds) of the right-motor lead-in that compensates for uneven torque."""
+
+    rotation_coefficient: float = 0.01
+    """Empirical coefficient converting angle (degrees) to rotation duration (seconds)."""
 
 
 class MLConfig(BaseModel):
@@ -88,9 +104,15 @@ class Settings(BaseSettings):
     camera_index: int = 0
     vision_server_url: str = "http://localhost:80"
 
+    log_level: str = "INFO"
+    log_format: Literal["text", "json"] = "text"
+
+    cors_origins: list[str] = ["*"]
+
     pins: PinMap = PinMap()
     hsv: HSVRange = HSVRange()
     scan: ScanConfig = ScanConfig()
+    motor: MotorConfig = MotorConfig()
     ml: MLConfig = MLConfig()
 
 
@@ -98,3 +120,44 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return a cached singleton :class:`Settings` instance."""
     return Settings()
+
+
+class _JSONFormatter(logging.Formatter):
+    """Emit each log record as a single JSON object."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        return json.dumps(
+            {
+                "timestamp": self.formatTime(record),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": record.getMessage(),
+            },
+        )
+
+
+def setup_logging(settings: Settings | None = None) -> None:
+    """Configure the root logger once from application settings.
+
+    Call this early in the process (e.g. from ``__main__``) instead of
+    scattering ``logging.basicConfig()`` across strategy modules.
+    """
+    if settings is None:
+        settings = get_settings()
+
+    root = logging.getLogger()
+    if root.handlers:
+        return
+
+    level = getattr(logging, settings.log_level.upper(), logging.INFO)
+    handler = logging.StreamHandler(sys.stderr)
+
+    if settings.log_format == "json":
+        handler.setFormatter(_JSONFormatter())
+    else:
+        handler.setFormatter(
+            logging.Formatter("%(levelname)s:%(name)s:%(message)s"),
+        )
+
+    root.setLevel(level)
+    root.addHandler(handler)

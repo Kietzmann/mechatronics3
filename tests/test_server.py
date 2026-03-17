@@ -353,6 +353,57 @@ class TestFilesEndpoints:
 # ---------------------------------------------------------------------------
 
 
+class TestAsyncMotor:
+    def test_async_motor_returns_ok(self, client: TestClient, auth_header, app) -> None:
+        resp = client.post("/api/robot/motor/forward", json={"duration": 0.1}, headers=auth_header)
+        assert resp.status_code == 200
+        app.state.motor.forward.assert_called_once_with(0.1)
+
+
+class TestMJPEGStream:
+    def test_mjpeg_stream_returns_503_without_camera(self, app, auth_header) -> None:
+        app.state.color_detector = None
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/api/detection/stream", headers=auth_header)
+        assert resp.status_code == 503
+
+
+class TestHealthEndpoint:
+    def test_health_returns_all_fields(self, client: TestClient) -> None:
+        resp = client.get("/api/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "board_connected" in data
+        assert "camera_open" in data
+        assert "ml_fitted" in data
+
+    def test_health_board_connected(self, client: TestClient) -> None:
+        resp = client.get("/api/health")
+        data = resp.json()
+        assert data["board_connected"] is True
+
+    def test_health_ml_not_fitted(self, client: TestClient) -> None:
+        resp = client.get("/api/health")
+        data = resp.json()
+        assert data["ml_fitted"] is False
+
+    def test_health_no_auth_required(self, client: TestClient) -> None:
+        resp = client.get("/api/health")
+        assert resp.status_code == 200
+
+
+class TestCORS:
+    def test_cors_headers_present(self, client: TestClient) -> None:
+        resp = client.options(
+            "/api/health",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        assert "access-control-allow-origin" in resp.headers
+
+
 class TestDashboard:
     def test_index_returns_html(self, client: TestClient) -> None:
         resp = client.get("/")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from mechatronics3.config import MotorConfig
 from mechatronics3.core.motor import MotorController
 
 
@@ -111,3 +112,21 @@ class TestRotate:
         motor.rotate(200.0, angle_range=130.0)
         assert motor._lf.read() is None
         assert motor._rf.read() is None
+
+
+class TestConfigurableMotorParams:
+    @patch("mechatronics3.core.motor.time.sleep")
+    def test_forward_uses_configured_lead_in(self, mock_sleep, board) -> None:
+        cfg = MotorConfig(torque_lead_in=0.25, rotation_coefficient=0.01)
+        m = MotorController(board, motor_config=cfg)
+        m.forward(1.0)
+        sleep_calls = [c[0][0] for c in mock_sleep.call_args_list]
+        assert sleep_calls[0] == 0.25
+
+    @patch("mechatronics3.core.motor.time.sleep")
+    def test_rotate_uses_configured_coefficient(self, mock_sleep, board) -> None:
+        cfg = MotorConfig(torque_lead_in=0.1, rotation_coefficient=0.05)
+        m = MotorController(board, motor_config=cfg)
+        m.rotate(30.0, angle_range=130.0)
+        sleep_calls = [c[0][0] for c in mock_sleep.call_args_list]
+        assert sleep_calls[0] == 30.0 * 0.05

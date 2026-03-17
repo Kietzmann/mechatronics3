@@ -81,6 +81,15 @@ class ColorDetector:
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         return frame, hsv
 
+    def capture_frame(self) -> NDArray[np.uint8] | None:
+        """Capture and return a raw BGR frame, or ``None`` on failure."""
+        if self._cap is None or not self._cap.isOpened():
+            return None
+        ret, frame = self._cap.read()
+        if not ret or frame is None:
+            return None
+        return frame
+
     # ------------------------------------------------------------------
     # Detection
     # ------------------------------------------------------------------

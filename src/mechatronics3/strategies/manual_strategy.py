@@ -60,7 +60,6 @@ def _optimal_angle(angles: list[float], detections: list[int]) -> float:
 
 def run() -> None:
     """Set up hardware and launch the tkinter control panel."""
-    logging.basicConfig(level=logging.INFO)
     settings = get_settings()
     pins = settings.pins
     auto_mode = False
@@ -73,6 +72,7 @@ def run() -> None:
             lb_pin=pins.motor_left_bwd,
             rf_pin=pins.motor_right_fwd,
             rb_pin=pins.motor_right_bwd,
+            motor_config=settings.motor,
         )
         servo = ServoController(
             board,

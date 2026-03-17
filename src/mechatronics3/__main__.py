@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+from mechatronics3.config import get_settings, setup_logging
+
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
@@ -23,6 +25,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.command is None:
         parser.print_help()
         sys.exit(1)
+
+    setup_logging(get_settings())
 
     if args.command == "server":
         from mechatronics3.server.app import start

@@ -60,7 +60,6 @@ _TRAINING_Y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 def run() -> None:
     """Train the ML model on sample data, then loop: scan → predict → act."""
-    logging.basicConfig(level=logging.INFO)
     settings = get_settings()
     pins = settings.pins
 
@@ -72,6 +71,7 @@ def run() -> None:
             lb_pin=pins.motor_left_bwd,
             rf_pin=pins.motor_right_fwd,
             rb_pin=pins.motor_right_bwd,
+            motor_config=settings.motor,
         )
         servo = ServoController(
             board,
