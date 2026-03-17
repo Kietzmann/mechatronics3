@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import random
+
 from pyfirmata import Arduino, util
+
 time=util.time
 board = Arduino('COM7', baudrate=57600)#, baudrate=9600
 print board

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 #import time
-from pyfirmata import Arduino, util
+import random
+
 import numpy as np
 import urllib2
-import random
+from pyfirmata import Arduino, util
 
 time=util.time
 

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 #import time
-from pyfirmata import Arduino, util
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingClassifier
 import random
+
+import numpy as np
+from pyfirmata import Arduino, util
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
 
 time=util.time
 board = Arduino('COM25')
@@ -56,7 +57,7 @@ def scan3D():
             #print board.analog[0].read(),
             h+=13
     return H,V,D
-    
+
 """
 import numpy as np
 from scipy.optimize import curve_fit
@@ -113,7 +114,7 @@ def B(t):
     LB(t)
     stop()
 
-# деякі дані для навчання - об'єкт шириною 10 см, висотою 10 см  
+# деякі дані для навчання - об'єкт шириною 10 см, висотою 10 см
 x=np.array([
 [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -150,9 +151,10 @@ print model.score(x_test, y_test) # правильність класифіка�
 
 # перехресна перевірка (удосконалення train_test_split + score)
 from sklearn.model_selection import cross_val_score
+
 s=cross_val_score(model, x, y, cv=9)
 print s, s.mean() # правильність класифікатора на кожній ітерації і її середнє значення
-print model.predict([[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]) 
+print model.predict([[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
 while True:
     H,V,D=scan3D()
