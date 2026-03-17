@@ -126,6 +126,9 @@ pre-commit run --all-files
 - [Hardware setup](docs/hardware-setup.md) — wiring, pin mapping, supported
   boards
 - [API reference](docs/api-reference.md) — REST endpoint documentation
+- [Architecture](docs/architecture.md) — internal architecture, module
+  descriptions, data flows, configuration reference
+- [Changelog](CHANGELOG.md) — migration notes and version history
 
 ## Related
 
