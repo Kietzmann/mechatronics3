@@ -1,4 +1,5 @@
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#3b82f6', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2563eb', 'secondaryColor': '#10b981', 'secondaryTextColor': '#fff', 'secondaryBorderColor': '#059669', 'tertiaryColor': '#f59e0b', 'tertiaryTextColor': '#000', 'tertiaryBorderColor': '#d97706'}}}%%
 mindmap
   root((Змагання роботів))
     Навігація
